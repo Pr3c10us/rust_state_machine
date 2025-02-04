@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::ops::AddAssign;
 
 pub trait Config {
-    type AccountID: Ord + Clone;
+    type AccountId: Ord + Clone;
     type BlockNumber: Zero + One + AddAssign + Copy;
     type Nonce: Zero + One + Copy;
 }
@@ -11,7 +11,7 @@ pub trait Config {
 #[derive(Debug)]
 pub struct Pallet<T: Config> {
     block_number: T::BlockNumber,
-    nonce: BTreeMap<T::AccountID, T::Nonce>,
+    nonce: BTreeMap<T::AccountId, T::Nonce>,
 }
 
 impl<T: Config> Pallet<T> {
@@ -30,7 +30,7 @@ impl<T: Config> Pallet<T> {
         self.block_number += one();
     }
 
-    pub fn inc_nonce(&mut self, who: &T::AccountID) {
+    pub fn inc_nonce(&mut self, who: &T::AccountId) {
         let binding = zero();
         let current_nonce = self.nonce.get(who).unwrap_or(&binding);
         self.nonce.insert(who.clone(), *current_nonce + one());
@@ -42,7 +42,7 @@ mod test {
 
     struct TestConfig {}
     impl Config for TestConfig {
-        type AccountID = String;
+        type AccountId = String;
         type BlockNumber = u32;
         type Nonce = u32;
     }

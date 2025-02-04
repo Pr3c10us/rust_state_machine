@@ -8,7 +8,7 @@ pub trait Config: crate::system::Config {
 
 #[derive(Debug)]
 pub struct Pallet<T: Config> {
-    balances: BTreeMap<T::AccountID, T::Balance>,
+    balances: BTreeMap<T::AccountId, T::Balance>,
 }
 
 impl<T: Config> Pallet<T> {
@@ -18,18 +18,22 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    pub fn set_balance(&mut self, who: &T::AccountID, amount: T::Balance) {
+    pub fn set_balance(&mut self, who: &T::AccountId, amount: T::Balance) {
         self.balances.insert(who.clone(), amount);
     }
 
-    pub fn balance(&mut self, who: &T::AccountID) -> T::Balance {
+    pub fn balance(&mut self, who: &T::AccountId) -> T::Balance {
         *self.balances.get(who).unwrap_or(&zero())
     }
+}
 
+
+#[macros::call]
+impl<T: Config> Pallet<T> {
     pub fn transfer(
         &mut self,
-        caller: T::AccountID,
-        receiver: T::AccountID,
+        caller: T::AccountId,
+        receiver: T::AccountId,
         amount: T::Balance,
     ) -> DispatchResult {
         let mut caller_balance = self.balance(&caller);
@@ -49,36 +53,13 @@ impl<T: Config> Pallet<T> {
     }
 }
 
-pub enum Call<T: Config> {
-    Transfer {
-        receiver: T::AccountID,
-        amount: T::Balance,
-    },
-}
-
-impl<T: Config> crate::support::Dispatch for Pallet<T> {
-    type Caller = T::AccountID;
-    type Call = Call<T>;
-
-    fn dispatch(
-        &mut self,
-        caller: Self::Caller,
-        call: Self::Call,
-    ) -> DispatchResult {
-        match call {
-            Call::Transfer { receiver, amount } => self.transfer(caller, receiver, amount)?,
-        }
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::balances::{Config, Pallet};
 
     struct TestConfig {}
     impl crate::system::Config for TestConfig {
-        type AccountID = String;
+        type AccountId = String;
         type BlockNumber = u32;
         type Nonce = u32;
     }
